@@ -87,6 +87,7 @@ func sendFile(sshInfo SSHInfo, localFilePath, remoteDir string) {
 
 	// 目标文件
 	remoteFileName := path.Base(localFilePath)
+	fmt.Println(path.Join(remoteDir, remoteFileName))
 	dstFile, err := sftpClient.Create(path.Join(remoteDir, remoteFileName))
 	if err != nil {
 		util.PrintInLog("create file error:%s\n", err.Error())

@@ -73,14 +73,19 @@ func GetCodeContent(codeData *model.CodeData) (string, error) {
 		graphString    string
 		err            error
 	)
+	// 这里是ID到节点名称对应的映射，这里的ID包括节点的ID，也包括typeId
 	mapNodeIdToName := make(map[string]string)
-	for _,node := range codeData.ChartData.Nodes {
+	for _, node := range codeData.ChartData.Nodes {
 		mapNodeIdToName[node.ID] = node.Name
 	}
 	for _, subGraphNode := range codeData.NodeList[model.NODE_TYPE_SUBGRAPHNODE] {
-		for _,node := range subGraphNode.Nodes {
+		mapNodeIdToName[subGraphNode.ID] = subGraphNode.Name
+		for _, node := range subGraphNode.Nodes {
 			mapNodeIdToName[node.ID] = node.Name
 		}
+	}
+	for _, funcNode := range codeData.NodeList[model.NODE_TYPE_FLOWNODE] {
+		mapNodeIdToName[funcNode.ID] = funcNode.Name
 	}
 
 	graphString, err = GetCodeFromGraphNode(&codeData.ChartData, mapNodeIdToName, 1)
@@ -124,7 +129,6 @@ func GetCodeFromNode(node *model.Node, mapNodeIdToName map[string]string, spaceN
 		for _, codeLine := range funcCode {
 			codeContent.WriteString(strings.Repeat("\t", spaceNum) + codeLine + "\n")
 		}
-		codeContent.WriteString("\n")
 		spaceNum--
 		codeContent.WriteString(strings.Repeat("\t", spaceNum) + "};\n")
 	} else if nodeType == model.NODE_TYPE_FLOWNODE {
@@ -135,7 +139,10 @@ func GetCodeFromNode(node *model.Node, mapNodeIdToName map[string]string, spaceN
 				codeContent.WriteString(",")
 			}
 		}
-		codeContent.WriteString(";")
+		// 如果两种参数都没有，那么就是没有参数，不需加分号分隔
+		if len(node.Inputs) != 0 || len(node.Outputs) != 0 {
+			codeContent.WriteString(";")
+		}
 		for index, attr := range node.Outputs {
 			codeContent.WriteString(attr.Type + " " + attr.Name)
 			if index != len(node.Outputs)-1 {
@@ -148,7 +155,6 @@ func GetCodeFromNode(node *model.Node, mapNodeIdToName map[string]string, spaceN
 		for _, codeLine := range funcCode {
 			codeContent.WriteString(strings.Repeat("\t", spaceNum) + codeLine + "\n")
 		}
-		codeContent.WriteString("\n")
 		spaceNum--
 		codeContent.WriteString(strings.Repeat("\t", spaceNum) + "}\n")
 	} else if nodeType == model.NODE_TYPE_SUBGRAPHNODE {
@@ -189,11 +195,11 @@ func GetCodeFromGraphNode(node *model.Node, mapNodeIdToName map[string]string, s
 	for _, FNNode := range node.Nodes {
 		if FNNode.Type == model.NODE_TYPE_FLOWNODE {
 			if _, ok := mapNodeIdToName[FNNode.ID]; ok {
-				codeContent.WriteString(strings.Repeat("\t", spaceNum) + "FN " + FNNode.Name + " " + mapNodeIdToName[FNNode.ID] + ";\n")
+				codeContent.WriteString(strings.Repeat("\t", spaceNum) + "FN " + FNNode.Name + " " + mapNodeIdToName[FNNode.TypeId] + ";\n")
 			}
 		} else if FNNode.Type == model.NODE_TYPE_SUBGRAPHNODE {
 			if _, ok := mapNodeIdToName[FNNode.ID]; ok {
-				codeContent.WriteString(strings.Repeat("\t", spaceNum) + "subgraph " + FNNode.Name + " " + mapNodeIdToName[FNNode.ID] + ";\n")
+				codeContent.WriteString(strings.Repeat("\t", spaceNum) + "subgraph " + FNNode.Name + " " + mapNodeIdToName[FNNode.TypeId] + ";\n")
 			}
 		}
 	}
