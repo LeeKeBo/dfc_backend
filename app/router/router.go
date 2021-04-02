@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"io"
+	"log"
 	"os"
 	"time"
 )
@@ -48,7 +49,29 @@ func apiRouter(router *gin.Engine) {
 	}
 }
 
+func initDirs() {
+	dirNeedToInit := []string{"./log", "./codeList", "./dfcCodeTransit"}
+	for _, item := range dirNeedToInit {
+		succ, err := initDir(item)
+		if !succ {
+			log.Fatal("make dir err", err.Error())
+		}
+	}
+}
+
+func initDir(path string) (bool, error) {
+	_, err := os.Stat(path)
+	if err == nil {
+		return true, nil
+	} else if os.IsNotExist(err) {
+		errMkDir := os.Mkdir(path, os.ModePerm)
+		return errMkDir == nil, errMkDir
+	}
+	return true, nil
+}
+
 func Run() {
+	initDirs()
 	r := initRouter()
 	r.Run(":8000")
 }
