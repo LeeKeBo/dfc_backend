@@ -140,7 +140,7 @@ func getFile(sshInfo SSHInfo, remoteFilePath, localDir string) {
 	//fmt.Println("copy file finished!")
 }
 
-func HandleSendFile(ctx *gin.Context) {
+func HandleSendFileWithSSH(ctx *gin.Context) {
 	//fmt.Println(ctx.Po)
 	var formData FormData
 	err := ctx.Bind(&formData)
@@ -160,22 +160,9 @@ func HandleSendFile(ctx *gin.Context) {
 	localFilePath := FilePre + formData.File
 	sendFile(sshInfo, localFilePath, remoteDir)
 	ctx.String(http.StatusOK, "ok")
-
 }
 
-func HandleSaveFile(ctx *gin.Context) {
-	file, err := ctx.FormFile("file")
-	if err != nil {
-		ctx.String(http.StatusBadRequest, "接收文件失败")
-	}
-	util.PrintInLog("file route:%s\n", FilePre+file.Filename)
-	if err := ctx.SaveUploadedFile(file, FilePre+file.Filename); err != nil {
-		util.PrintInLog("save file error:%s\n", err.Error())
-		ctx.String(http.StatusBadRequest, "保存文件失败")
-	}
-}
-
-func HandleDownloadFile(ctx *gin.Context) {
+func HandleDownloadFileWithSSH(ctx *gin.Context) {
 	var formData FormData
 	err := ctx.Bind(&formData)
 	if err != nil {

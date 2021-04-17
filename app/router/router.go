@@ -39,13 +39,20 @@ func initRouter() *gin.Engine {
 }
 
 func apiRouter(router *gin.Engine) {
+	// 三个接口：生成文件和上下传代码
 	genCode := router.Group("dfcCode")
 	{
 		genCode.POST("generateCode", controller.HandleGenerateCode)
 		genCode.GET("/", controller.GetTest)
-		genCode.POST("storeFile", controller.HandleSaveFile)
-		genCode.POST("uploadFile", controller.HandleSendFile)
-		genCode.POST("downloadFile", controller.HandleDownloadFile)
+		genCode.POST("uploadFile", controller.HandleSendFileWithSSH)
+		genCode.POST("downloadFile", controller.HandleDownloadFileWithSSH)
+	}
+	// 以下两个接口用来做文件服务器
+	// 两个接口：保存文件和下载文件
+	fileOpera := router.Group("fileOpera")
+	{
+		fileOpera.GET("downloadFile", controller.HandleDownloadFile)
+		fileOpera.POST("storeFile", controller.HandleSaveFile)
 	}
 }
 
